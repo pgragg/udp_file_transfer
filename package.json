@@ -1,0 +1,20 @@
+{
+  "name": "udp_file_transfer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "dependencies": {
+    "buffer": "^5.4.3",
+    "dgram": "^1.0.1",
+    "udp": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^13.1.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node dist/index.js"
+  },
+  "author": "",
+  "license": "ISC"
+}
