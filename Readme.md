@@ -20,5 +20,6 @@ The write server, when it receives the Message, verifies the checksum of the mes
 if the checksum does not pass, the server will respond with a failure message
 if the checksum does pass, the server will respond with a success message.
 
-TODO: reuse clients in a clientPool
-TODO: retry any jobs which don't succeed within a timeframe.
+TODO: 
+- reuse clients in a clientPool
+- retry any jobs which don't succeed within a timeframe.
