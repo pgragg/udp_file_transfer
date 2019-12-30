@@ -31,9 +31,9 @@ var UDPSocket = /** @class */ (function () {
             var port = address.port;
             var family = address.family;
             var ipaddr = address.address;
-            logger_1.Logger.log("socket is listening at port: " + port);
-            logger_1.Logger.log("socket ip :" + ipaddr);
-            logger_1.Logger.log("socket is IP4/IP6 : " + family);
+            // Logger.log("socket is listening at port: " + port);
+            // Logger.log("socket ip :" + ipaddr);
+            // Logger.log("socket is IP4/IP6 : " + family);
         });
         //emits after the socket is closed using socket.close();
         socket.on("close", function () {

@@ -32,9 +32,9 @@ export class UDPSocket {
       var port = address.port;
       var family = address.family;
       var ipaddr = address.address;
-      Logger.log("socket is listening at port: " + port);
-      Logger.log("socket ip :" + ipaddr);
-      Logger.log("socket is IP4/IP6 : " + family);
+      // Logger.log("socket is listening at port: " + port);
+      // Logger.log("socket ip :" + ipaddr);
+      // Logger.log("socket is IP4/IP6 : " + family);
     });
 
     //emits after the socket is closed using socket.close();

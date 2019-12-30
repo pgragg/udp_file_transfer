@@ -43,20 +43,16 @@ var fs_1 = __importDefault(require("fs"));
 var jobHandler_1 = require("../process/jobHandler");
 var chunkTransfer_1 = require("./chunkTransfer");
 var job_1 = require("../process/job");
-var logger_1 = require("../../helpers/logger");
 exports.read = function (_a) {
-    var port = _a.port, fileName = _a.fileName, chunkSize = _a.chunkSize;
+    var port = _a.port, fileName = _a.fileName, chunkSize = _a.chunkSize, maxPoolSize = _a.maxPoolSize;
     return __awaiter(_this, void 0, void 0, function () {
         var jobHandler, stats, fileSizeInBytes, startByte, endByte, chunkTransfer, job, jobRunnerId;
         return __generator(this, function (_b) {
-            jobHandler = new jobHandler_1.JobHandler();
+            jobHandler = new jobHandler_1.JobHandler({ maxPoolSize: maxPoolSize });
             stats = fs_1.default.statSync(fileName);
             fileSizeInBytes = stats.size;
-            logger_1.Logger.log({ fileSizeInBytes: fileSizeInBytes });
             startByte = 0;
-            logger_1.Logger.log({ totalWorkers: fileSizeInBytes / chunkSize });
             while (startByte < fileSizeInBytes) {
-                logger_1.Logger.log({ startByte: startByte });
                 endByte = startByte + chunkSize;
                 chunkTransfer = new chunkTransfer_1.ChunkTransfer({ port: port, fileName: fileName, startByte: startByte, endByte: endByte });
                 job = new job_1.Job({ id: startByte, jobTask: chunkTransfer });
@@ -65,7 +61,7 @@ exports.read = function (_a) {
             }
             jobRunnerId = setInterval(function () {
                 jobHandler.runJobs();
-            }, 2000);
+            }, 500);
             setInterval(function () {
                 if (jobHandler.isFinished()) {
                     clearInterval(jobRunnerId);

@@ -13,6 +13,7 @@ var checksum = function (str) {
         .digest('hex');
 };
 exports.MessageCheckSumMismatchMessage = 'Error: Message checksum mismatch.';
+exports.InvalidJSONFormatMessage = 'Error: invalid JSON. Could not parse.';
 var Document = /** @class */ (function () {
     function Document(_a) {
         var startByte = _a.startByte, endByte = _a.endByte, data = _a.data;
@@ -42,12 +43,24 @@ var Message = /** @class */ (function () {
         return JSON.stringify(this);
     };
     Message.fromString = function (docString) {
-        var doc = JSON.parse(docString);
+        var docResult = this.parseDoc(docString);
+        if (docResult.failure) {
+            return docResult;
+        }
+        var doc = docResult.success;
         if (doc.checksum === Message.calculateChecksum(doc)) {
             return result_1.Result.Success(doc);
         }
         logger_1.Logger.log(exports.MessageCheckSumMismatchMessage);
         return result_1.Result.Failure(new Error(exports.MessageCheckSumMismatchMessage));
+    };
+    Message.parseDoc = function (docString) {
+        try {
+            return result_1.Result.Success(JSON.parse(docString));
+        }
+        catch (error) {
+            return result_1.Result.Failure(new Error(exports.InvalidJSONFormatMessage));
+        }
     };
     Message.calculateChecksum = function (doc) {
         var docCopy = JSON.parse(JSON.stringify(doc));

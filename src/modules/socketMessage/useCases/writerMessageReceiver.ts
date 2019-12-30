@@ -3,39 +3,41 @@ import * as udp from 'dgram'
 import fs from 'fs'
 import { IMessageReceiver } from '../../../entities/udpSocket';
 import { Logger } from '../../../helpers/logger';
+import { Result } from '../../../helpers/result';
+import { SimpleResult } from '../../../helpers/SimpleResult';
 
 export class WriterMessageReceiver implements IMessageReceiver {
   constructor(private targetFileName: string) { }
   public receiveMessage(msg: Buffer, info: udp.RemoteInfo, socket: udp.Socket) {
-    Logger.log(
-      "Received %d bytes from %s:%d\n",
-      msg.length,
-      info.address,
-      info.port
-    );
 
     const message = Message.fromString(msg.toString())
     if (message.success) {
-      Logger.log(`Successfully received Message ${JSON.stringify(message)}`)
-      this.sendResponse(socket, info.port, 'success', message.success.payload.startByte)
+      Logger.log(`Successfully received message with startByte: ${message.success.payload.startByte}`)
       this.enactMessage(message.success);
+      this.sendResponse(socket, info.port, 'success', message.success.payload.startByte)
+
     } else {
       this.sendResponse(socket, info.port, 'failure');
     }
   }
-  private enactMessage(message: Message) {
-    if ('status' in message.payload) {
-      return
+  private async enactMessage(message: Message): Promise<SimpleResult<null, NodeJS.ErrnoException>> {
+    if (!('data' in message.payload)) {
+      return Result.Failure(new Error('Expected data field.'))
     }
 
     const document = message.payload;
     const fileDescriptor = fs.openSync(this.targetFileName, 'a')
     const buffer = Buffer.from(document.data)
 
-    fs.write(fileDescriptor, buffer, 0, buffer.length, document.startByte, (err: NodeJS.ErrnoException | null, writtenBytes: number, buffer: Buffer) => {
-      Logger.log(`Wrote ${writtenBytes} bytes to file ${this.targetFileName}`);
-    });
-
+    return await new Promise((resolve) => {
+      fs.write(fileDescriptor, buffer, 0, buffer.length, document.startByte, (err: NodeJS.ErrnoException | null, writtenBytes: number, buffer: Buffer) => {
+        if(err){
+          resolve(Result.Failure(err))
+        }
+        Logger.log(`Wrote ${writtenBytes} bytes to file ${this.targetFileName}`);
+        resolve(Result.Success(null));
+      });
+    })
   }
 
   private sendResponse(socket: udp.Socket, port: number, status: 'failure' | 'success', startByte?: number) {

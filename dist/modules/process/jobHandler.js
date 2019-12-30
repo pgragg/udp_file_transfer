@@ -35,25 +35,23 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var logger_1 = require("../../helpers/logger");
 var pool_1 = require("./pool");
 var udpSocket_1 = require("../../entities/udpSocket");
 var readerMessageReceiver_1 = require("../socketMessage/useCases/readerMessageReceiver");
 var JobHandler = /** @class */ (function () {
-    function JobHandler() {
-        this.jobPool = new pool_1.Pool({ maxPoolSize: 5 });
+    function JobHandler(_a) {
+        var maxPoolSize = _a.maxPoolSize;
+        this.jobPool = new pool_1.Pool({ maxPoolSize: maxPoolSize });
     }
     JobHandler.prototype.add = function (job) {
         this.jobPool.add(job);
     };
     JobHandler.prototype.runJobs = function () {
-        console.log("jobPool size: " + JSON.stringify(this.jobPool));
         while (this.jobPool.canAllocate()) {
             var job = this.jobPool.allocate();
             if (!job) {
-                throw new Error("WHY NO JOB LOL");
+                throw new Error("No job found.");
             }
-            logger_1.Logger.log("Running next job: " + job.id);
             this.start(job);
         }
     };
@@ -77,14 +75,12 @@ var JobHandler = /** @class */ (function () {
         return this.jobPool.size === 0;
     };
     JobHandler.prototype.markComplete = function (id) {
-        logger_1.Logger.log('Mark complete ' + id);
         this.jobPool.delete(id);
     };
     JobHandler.prototype.markIncomplete = function (id) {
         if (!this.jobPool.isActive(id)) {
             return;
         }
-        logger_1.Logger.log('markIncomplete ' + id);
         this.jobPool.deactivateElement(id);
     };
     return JobHandler;

@@ -19,7 +19,6 @@ export class Pool<T extends Poolable> {
 
     add(element: T) {
         this.inactiveElements[element.id] = element
-        console.log({ inactiveThis: this })
     }
 
     public canAllocate() {

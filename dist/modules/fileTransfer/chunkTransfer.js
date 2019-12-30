@@ -63,9 +63,6 @@ var ChunkTransfer = /** @class */ (function () {
                 });
                 fs_1.default.createReadStream(this.fileName, { start: this.startByte, end: this.endByte })
                     .pipe(writable);
-                // if(Math.random() > 0.3){
-                //     return
-                // }
                 writable.on('finish', function () {
                     var message = new message_1.Message(new message_1.Document({ startByte: _this.startByte, endByte: _this.endByte, data: buffer.join('') })).toString();
                     client.send(message, _this.port, 'localhost', function (error) {

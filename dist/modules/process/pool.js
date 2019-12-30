@@ -11,7 +11,6 @@ var Pool = /** @class */ (function () {
     }
     Pool.prototype.add = function (element) {
         this.inactiveElements[element.id] = element;
-        console.log({ inactiveThis: this });
     };
     Pool.prototype.canAllocate = function () {
         return (Object.keys(this.activeElements).length < this.maxPoolSize) &&

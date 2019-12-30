@@ -31,10 +31,6 @@ export class ChunkTransfer {
         fs.createReadStream(this.fileName, { start: this.startByte, end: this.endByte })
             .pipe(writable);
 
-        // if(Math.random() > 0.3){
-        //     return
-        // }
-
         writable.on('finish', () => {
             const message = new Message(
                 new Document({ startByte: this.startByte, endByte: this.endByte, data: buffer.join('') })

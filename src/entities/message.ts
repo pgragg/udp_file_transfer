@@ -11,12 +11,13 @@ const checksum = (str: string) => {
 }
 
 export const MessageCheckSumMismatchMessage = 'Error: Message checksum mismatch.'
+export const InvalidJSONFormatMessage = 'Error: invalid JSON. Could not parse.'
 
 export class Document {
     public startByte: number;
     public endByte: number;
     public data: string;
-    constructor({ startByte, endByte, data }: { startByte: number, endByte: number, data: string}) {
+    constructor({ startByte, endByte, data }: { startByte: number, endByte: number, data: string }) {
         this.startByte = startByte;
         this.endByte = endByte;
         this.data = data;
@@ -26,7 +27,7 @@ export class Document {
 export class Status {
     public status: 'success' | 'failure'
     public startByte: number | undefined;
-    constructor({status, startByte}: {status: 'success' | 'failure', startByte?: number}){
+    constructor({ status, startByte }: { status: 'success' | 'failure', startByte?: number }) {
         this.status = status;
         this.startByte = startByte;
     }
@@ -44,13 +45,23 @@ export class Message {
     }
 
     public static fromString(docString: string): SimpleResult<Message, Error> {
-        const doc = JSON.parse(docString)
+        const docResult = this.parseDoc(docString)
+        if (docResult.failure) { return docResult }
+
+        const doc = docResult.success
         if (doc.checksum === Message.calculateChecksum(doc)) {
-            
             return Result.Success(doc as Message)
         }
         Logger.log(MessageCheckSumMismatchMessage)
         return Result.Failure(new Error(MessageCheckSumMismatchMessage))
+    }
+
+    private static parseDoc(docString: string): SimpleResult<Message, Error> {
+        try {
+            return Result.Success(JSON.parse(docString))
+        } catch (error) {
+            return Result.Failure(new Error(InvalidJSONFormatMessage))
+        }
     }
 
     private static calculateChecksum(doc: any) {

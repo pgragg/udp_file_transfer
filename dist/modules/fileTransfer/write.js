@@ -39,11 +39,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var writerMessageReceiver_1 = require("../socketMessage/useCases/writerMessageReceiver");
 var udpSocket_1 = require("../../entities/udpSocket");
 exports.write = function (_a) {
-    var port = _a.port, targetFileName = _a.targetFileName;
+    var port = _a.port, targetFileName = _a.targetFileName, timeout = _a.timeout;
     return __awaiter(_this, void 0, void 0, function () {
-        var timeout;
         return __generator(this, function (_b) {
-            timeout = 60000;
             udpSocket_1.UDPSocket.create({ port: port, timeout: timeout, messageReceiver: new writerMessageReceiver_1.WriterMessageReceiver(targetFileName) });
             return [2 /*return*/];
         });

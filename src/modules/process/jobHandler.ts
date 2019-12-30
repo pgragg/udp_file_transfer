@@ -1,5 +1,4 @@
 import { Job } from './job';
-import { Logger } from '../../helpers/logger';
 import { Pool } from './pool';
 import { UDPSocket } from '../../entities/udpSocket';
 import { ReaderMessageReceiver } from '../socketMessage/useCases/readerMessageReceiver';
@@ -7,8 +6,8 @@ import { ReaderMessageReceiver } from '../socketMessage/useCases/readerMessageRe
 export class JobHandler {
     private jobPool: Pool<Job>;
 
-    constructor() {
-        this.jobPool = new Pool<Job>({ maxPoolSize: 5 })
+    constructor({maxPoolSize}: {maxPoolSize: number}) {
+        this.jobPool = new Pool<Job>({ maxPoolSize })
     }
 
     add(job: Job) {
@@ -16,11 +15,9 @@ export class JobHandler {
     }
 
     runJobs() {
-        console.log(`jobPool size: ${JSON.stringify(this.jobPool)}`)
         while (this.jobPool.canAllocate()) {
             const job = this.jobPool.allocate();
-            if (!job) { throw new Error("WHY NO JOB LOL") }
-            Logger.log(`Running next job: ${job.id}`)
+            if (!job) { throw new Error("No job found.") }
             this.start(job)
         }
     }
@@ -37,7 +34,6 @@ export class JobHandler {
     }
 
     markComplete(id: number) {
-        Logger.log('Mark complete ' + id)
         this.jobPool.delete(id)
     }
 
@@ -45,7 +41,6 @@ export class JobHandler {
         if (!this.jobPool.isActive(id)) { 
             return 
         }
-        Logger.log('markIncomplete ' + id)
         this.jobPool.deactivateElement(id)
     }
 }
