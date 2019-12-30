@@ -4,8 +4,8 @@ var transferFile_1 = require("./modules/fileTransfer/transferFile");
 if (!module.parent) {
     transferFile_1.transferFile({
         port: 2222,
-        fileName: './src/files/smol.txt',
-        targetFileName: './src/files/smol2.txt'
+        fileName: './src/files/typescript.pdf',
+        targetFileName: './src/files/typescript2.pdf'
     }).then(function () {
         console.log("Done");
     });
