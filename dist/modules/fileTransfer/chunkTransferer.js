@@ -35,78 +35,46 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var Job = /** @class */ (function () {
-    function Job(_a) {
-        var id = _a.id, chunkTransferer = _a.chunkTransferer;
-        this.id = id;
-        this.chunkTransferer = chunkTransferer;
+var ChunkTransfer = /** @class */ (function () {
+    function ChunkTransfer(_a) {
+        var client = _a.client, port = _a.port, fileName = _a.fileName, startByte = _a.startByte, endByte = _a.endByte;
+        this.client = client;
+        this.port = port;
+        this.fileName = fileName;
+        this.startByte = startByte;
+        this.endByte = endByte;
     }
-    Job.prototype.execute = function () {
+    ChunkTransfer.prototype.execute = function () {
         return __awaiter(this, void 0, void 0, function () {
+            var buffer, writable;
+            var _this = this;
             return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.chunkTransferer.execute()];
-                    case 1: return [2 /*return*/, _a.sent()];
-                }
+                buffer = [];
+                writable = new stream.Writable({
+                    write: function (chunk, encoding, next) {
+                        buffer.push(chunk);
+                        next();
+                    }
+                });
+                fs.createReadStream(this.fileName, { start: this.startByte, end: this.endByte })
+                    .pipe(writable);
+                writable.on('finish', function () {
+                    var message = new Message(new Document({ startByte: _this.startByte, endByte: _this.endByte, data: buffer.join('') })).toString();
+                    var client = _this.client;
+                    var port = _this.port;
+                    _this.client.send(message, _this.port, 'localhost', function (error) {
+                        if (error) {
+                            client.close();
+                        }
+                        else {
+                            console.log("Data sent to port " + port);
+                        }
+                    });
+                });
+                return [2 /*return*/];
             });
         });
     };
-    return Job;
+    return ChunkTransfer;
 }());
-exports.Job = Job;
-var JobHandler = /** @class */ (function () {
-    function JobHandler() {
-        this.inactiveJobs = {};
-        this.activeJobs = {};
-        this.maxActiveJobs = 5;
-    }
-    JobHandler.prototype.add = function (job) {
-        this.inactiveJobs[job.id] = job;
-    };
-    JobHandler.prototype.runJobs = function () {
-        while (this.shouldRunMoreJobs) {
-            console.log('Running next job');
-            var job = Object.values(this.inactiveJobs)[0];
-            console.log({ job: job });
-            job.execute();
-        }
-    };
-    Object.defineProperty(JobHandler.prototype, "shouldRunMoreJobs", {
-        get: function () {
-            return (Object.keys(this.activeJobs).length < this.maxActiveJobs) &&
-                Object.keys(this.inactiveJobs).length > 0;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    JobHandler.prototype.start = function (id) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        // If this process times out, we have no way of marking the job inactive :/ 
-                        this.markActive(id);
-                        return [4 /*yield*/, this.getJob(id, this.activeJobs).execute()];
-                    case 1: return [2 /*return*/, _a.sent()];
-                }
-            });
-        });
-    };
-    JobHandler.prototype.getJob = function (id, jobPool) {
-        if (jobPool === void 0) { jobPool = this.inactiveJobs; }
-        var job = jobPool[id];
-        if (!job) {
-            throw new Error('Expected job but found none.');
-        }
-        return job;
-    };
-    JobHandler.prototype.markActive = function (id) {
-        this.activeJobs[id] = this.getJob(id, this.inactiveJobs);
-    };
-    JobHandler.prototype.markComplete = function (id) {
-        console.log('Mark complete ' + id);
-        delete this.activeJobs[id];
-    };
-    return JobHandler;
-}());
-exports.JobHandler = JobHandler;
+exports.ChunkTransfer = ChunkTransfer;

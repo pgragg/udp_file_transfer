@@ -20,6 +20,7 @@ var ReaderMessageReceiver = /** @class */ (function () {
             return;
         }
         var status = message.payload;
+        console.log("Received status " + JSON.stringify(status));
         if (status.status === 'success') {
             if (!status.startByte) {
                 return;

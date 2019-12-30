@@ -1,39 +1,42 @@
 export class Job {
     public id: number
-    private task: Promise<void>
-    constructor({id, task}: {id: number, task: Promise<void>}) {
+    private chunkTransferer: Promise<void>
+    constructor({ id, chunkTransferer }: { id: number, chunkTransferer: ChunkTransferer }) {
         this.id = id;
-        this.task = task;
-     }
+        this.chunkTransferer = chunkTransferer;
+    }
     async execute() {
-        return await this.task;
+        return await this.chunkTransferer.execute();
     }
 }
 
 export class JobHandler {
-    private inactiveJobs: Map<number, Job>
-    private activeJobs: Map<number, Job>
+    private inactiveJobs: { [key: number]: Job }
+    private activeJobs: { [key: number]: Job }
     private maxActiveJobs: number;
 
     constructor() {
-        this.inactiveJobs = new Map()
-        this.activeJobs = new Map()
+        this.inactiveJobs = {}
+        this.activeJobs = {}
         this.maxActiveJobs = 5;
     }
 
     add(job: Job) {
-        this.inactiveJobs.set(job.id, job)
+        this.inactiveJobs[job.id] = job
     }
 
-    runJobs(){
-        while(this.shouldRunMoreJobs){
-            const job = this.inactiveJobs.values().next().value
+    runJobs() {
+        while (this.shouldRunMoreJobs) {
+            console.log('Running next job')
+            const job = Object.values(this.inactiveJobs)[0]
+            console.log({ job })
             job.execute()
         }
     }
 
-    private get shouldRunMoreJobs(){
-        return (this.activeJobs.size < this.maxActiveJobs) && this.inactiveJobs.size > 0
+    private get shouldRunMoreJobs() {
+        return (Object.keys(this.activeJobs).length < this.maxActiveJobs) && 
+            Object.keys(this.inactiveJobs).length > 0
     }
 
     private async start(id: number) {
@@ -43,16 +46,17 @@ export class JobHandler {
     }
 
     private getJob(id: number, jobPool = this.inactiveJobs) {
-        const job = jobPool.get(id);
+        const job = jobPool[id];
         if (!job) { throw new Error('Expected job but found none.') }
         return job;
     }
 
     private markActive(id: number) {
-        this.activeJobs.set(id, this.getJob(id, this.inactiveJobs))
+        this.activeJobs[id] = this.getJob(id, this.inactiveJobs)
     }
 
     markComplete(id: number) {
-        this.activeJobs.delete(id)
+        console.log('Mark complete ' + id)
+        delete this.activeJobs[id]
     }
 }

@@ -30,6 +30,7 @@ export class ReaderMessageReceiver implements IMessageReceiver {
     }
 
     const status = message.payload;
+    console.log(`Received status ${JSON.stringify(status)}`)
     if (status.status === 'success') {
       if (!status.startByte) { return }
 

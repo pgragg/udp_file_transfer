@@ -40,45 +40,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
 var fs_1 = __importDefault(require("fs"));
-var stream_1 = __importDefault(require("stream"));
 var writerMessageReceiver_1 = require("../socketMessage/useCases/writerMessageReceiver");
 var udpSocket_1 = require("../../entities/udpSocket");
-var message_1 = require("../../entities/message");
 var readerMessageReceiver_1 = require("../socketMessage/useCases/readerMessageReceiver");
 var jobHandler_1 = require("../process/jobHandler");
-var transferChunk = function (_a) {
-    var client = _a.client, port = _a.port, fileName = _a.fileName, startByte = _a.startByte, endByte = _a.endByte;
-    return __awaiter(_this, void 0, void 0, function () {
-        var buffer, writable;
-        return __generator(this, function (_b) {
-            buffer = [];
-            writable = new stream_1.default.Writable({
-                write: function (chunk, encoding, next) {
-                    buffer.push(chunk);
-                    next();
-                }
-            });
-            fs_1.default.createReadStream(fileName, { start: startByte, end: endByte })
-                .pipe(writable);
-            writable.on('finish', function () {
-                var message = new message_1.Message(new message_1.Document({ startByte: startByte, endByte: endByte, data: buffer.join('') })).toString();
-                client.send(message, port, 'localhost', function (error) {
-                    if (error) {
-                        client.close();
-                    }
-                    else {
-                        console.log("Data sent to port " + port);
-                    }
-                });
-            });
-            return [2 /*return*/];
-        });
-    });
-};
 exports.transferFile = function (_a) {
     var port = _a.port, fileName = _a.fileName, targetFileName = _a.targetFileName;
     return __awaiter(_this, void 0, void 0, function () {
-        var jobHandler, timeout, stats, fileSizeInBytes, chunkSize, startByte, promises, endByte, client, taskPromise, job;
+        var jobHandler, timeout, stats, fileSizeInBytes, chunkSize, startByte, promises, endByte, client, chunkTransferer, job;
         return __generator(this, function (_b) {
             jobHandler = new jobHandler_1.JobHandler();
             timeout = 5000;
@@ -90,10 +59,11 @@ exports.transferFile = function (_a) {
             startByte = 0;
             promises = [];
             while (startByte < fileSizeInBytes) {
+                console.log({ startByte: startByte });
                 endByte = startByte + chunkSize;
                 client = udpSocket_1.UDPSocket.create({ messageReceiver: new readerMessageReceiver_1.ReaderMessageReceiver(jobHandler) });
-                taskPromise = transferChunk({ client: client, port: port, fileName: fileName, startByte: startByte, endByte: endByte });
-                job = new jobHandler_1.Job({ id: startByte, task: taskPromise });
+                chunkTransferer = new ChunkTransferer({ client: client, port: port, fileName: fileName, startByte: startByte, endByte: endByte });
+                job = new jobHandler_1.Job({ id: startByte, chunkTransferer: chunkTransferer });
                 jobHandler.add(job);
                 startByte += chunkSize;
             }
