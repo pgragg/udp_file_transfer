@@ -24,17 +24,11 @@ export class SocketMessageReceiver implements IMessageReceiver {
     }
   }
   private enactMessage(message: Message) {
-    console.log({ message })
     if ('status' in message.payload) {
       return
     }
+    
     const document = message.payload;
-    console.log({ targetFileName: this.targetFileName })
-    const writeStream = fs.createWriteStream(this.targetFileName, { start: document.startByte });
-    // buffer: TBuffer,
-    // offset: number | undefined | null,
-    // length: number | undefined | null,
-    // position: number | undefined | null,
     const fileDescriptor = fs.openSync(this.targetFileName, 'a')
     const buffer = Buffer.from(document.data)
 

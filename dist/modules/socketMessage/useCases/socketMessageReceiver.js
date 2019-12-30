@@ -23,17 +23,10 @@ var SocketMessageReceiver = /** @class */ (function () {
         }
     };
     SocketMessageReceiver.prototype.enactMessage = function (message) {
-        console.log({ message: message });
         if ('status' in message.payload) {
             return;
         }
         var document = message.payload;
-        console.log({ targetFileName: this.targetFileName });
-        var writeStream = fs_1.default.createWriteStream(this.targetFileName, { start: document.startByte });
-        // buffer: TBuffer,
-        // offset: number | undefined | null,
-        // length: number | undefined | null,
-        // position: number | undefined | null,
         var fileDescriptor = fs_1.default.openSync(this.targetFileName, 'a');
         var buffer = Buffer.from(document.data);
         fs_1.default.write(fileDescriptor, buffer, 0, buffer.length, document.startByte, function (err, writtenBytes, buffer) {
