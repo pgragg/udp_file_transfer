@@ -37,6 +37,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var logger_1 = require("../../helpers/logger");
 var pool_1 = require("./pool");
+var udpSocket_1 = require("../../entities/udpSocket");
+var readerMessageReceiver_1 = require("../socketMessage/useCases/readerMessageReceiver");
 var JobHandler = /** @class */ (function () {
     function JobHandler() {
         this.jobPool = new pool_1.Pool({ maxPoolSize: 5 });
@@ -45,10 +47,11 @@ var JobHandler = /** @class */ (function () {
         this.jobPool.add(job);
     };
     JobHandler.prototype.runJobs = function () {
-        while (this.jobPool.isUnderMaxAllocation()) {
+        console.log("jobPool size: " + JSON.stringify(this.jobPool));
+        while (this.jobPool.canAllocate()) {
             var job = this.jobPool.allocate();
             if (!job) {
-                break;
+                throw new Error("WHY NO JOB LOL");
             }
             logger_1.Logger.log("Running next job: " + job.id);
             this.start(job);
@@ -56,17 +59,33 @@ var JobHandler = /** @class */ (function () {
     };
     JobHandler.prototype.start = function (job) {
         return __awaiter(this, void 0, void 0, function () {
+            var timeout, client;
+            var _this = this;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, job.execute()];
+                    case 0:
+                        timeout = 1500;
+                        client = udpSocket_1.UDPSocket.create({ messageReceiver: new readerMessageReceiver_1.ReaderMessageReceiver(this), timeout: 1000 });
+                        setTimeout(function () { _this.markIncomplete(job.id); }, timeout);
+                        return [4 /*yield*/, job.execute(client)];
                     case 1: return [2 /*return*/, _a.sent()];
                 }
             });
         });
     };
+    JobHandler.prototype.isFinished = function () {
+        return this.jobPool.size === 0;
+    };
     JobHandler.prototype.markComplete = function (id) {
         logger_1.Logger.log('Mark complete ' + id);
         this.jobPool.delete(id);
+    };
+    JobHandler.prototype.markIncomplete = function (id) {
+        if (!this.jobPool.isActive(id)) {
+            return;
+        }
+        logger_1.Logger.log('markIncomplete ' + id);
+        this.jobPool.deactivateElement(id);
     };
     return JobHandler;
 }());

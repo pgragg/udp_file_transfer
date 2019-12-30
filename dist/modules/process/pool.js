@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var logger_1 = require("../../helpers/logger");
+var result_1 = require("../../helpers/result");
 var Pool = /** @class */ (function () {
     function Pool(_a) {
         var maxPoolSize = _a.maxPoolSize;
@@ -9,44 +10,68 @@ var Pool = /** @class */ (function () {
         this.maxPoolSize = maxPoolSize || 5;
     }
     Pool.prototype.add = function (element) {
-        this.inactiveElements[String(element.id)] = element;
+        this.inactiveElements[element.id] = element;
         console.log({ inactiveThis: this });
     };
-    Pool.prototype.isUnderMaxAllocation = function () {
+    Pool.prototype.canAllocate = function () {
         return (Object.keys(this.activeElements).length < this.maxPoolSize) &&
             Object.keys(this.inactiveElements).length > 0;
     };
     Pool.prototype.get = function (id, jobPool) {
         if (jobPool === void 0) { jobPool = this.inactiveElements; }
-        var job = jobPool[String(id)];
+        var job = jobPool[id];
         if (!job) {
-            throw new Error('Expected job but found none.');
+            return result_1.Result.Failure(new Error('Expected job but found none.'));
         }
-        return job;
+        return result_1.Result.Success(job);
     };
     Pool.prototype.allocate = function (id) {
-        if (!this.isUnderMaxAllocation()) {
-            return;
+        if (!this.canAllocate()) {
+            throw new Error("Expected to be able to allocate but cannot.");
         }
-        if (typeof id !== 'number') {
+        if (typeof id === 'undefined') {
             var keys = Object.keys(this.inactiveElements);
-            console.log({ keys: keys });
             id = Number(keys[0]);
         }
-        if (typeof id !== 'number') {
-            logger_1.Logger.log("--- Could not find job id --- " + id);
-            logger_1.Logger.log("" + JSON.stringify(this));
+        var element = this.get(id, this.inactiveElements);
+        if (element.failure) {
+            throw element.failure;
+        }
+        this.activateElement(id);
+        return element.success;
+    };
+    Pool.prototype.activateElement = function (id) {
+        var inactiveElement = this.get(id, this.inactiveElements);
+        if (inactiveElement.failure) {
+            throw inactiveElement.failure;
+        }
+        this.activeElements[id] = inactiveElement.success;
+        delete this.inactiveElements[id];
+    };
+    Pool.prototype.deactivateElement = function (id) {
+        var activeElement = this.get(id, this.activeElements);
+        if (activeElement.failure) {
+            logger_1.Logger.log("Failed to deactivate element " + id);
             return;
         }
-        var element = this.get(id, this.inactiveElements);
-        this.activeElements[String(id)] = this.get(id, this.inactiveElements);
-        delete this.inactiveElements[id];
-        return element;
+        this.inactiveElements[id] = activeElement.success;
+        delete this.activeElements[id];
     };
     Pool.prototype.delete = function (id) {
         logger_1.Logger.log('Mark complete ' + id);
-        delete this.activeElements[String(id)];
+        delete this.activeElements[id];
+        delete this.inactiveElements[id];
     };
+    Pool.prototype.isActive = function (id) {
+        return this.activeElements[id] !== undefined;
+    };
+    Object.defineProperty(Pool.prototype, "size", {
+        get: function () {
+            return Object.keys(this.inactiveElements).length + Object.keys(this.activeElements).length;
+        },
+        enumerable: true,
+        configurable: true
+    });
     return Pool;
 }());
 exports.Pool = Pool;

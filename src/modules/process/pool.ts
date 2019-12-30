@@ -1,13 +1,15 @@
 import { Logger } from '../../helpers/logger';
+import { Result } from '../../helpers/result';
+import { SimpleResult } from '../../helpers/SimpleResult';
 
 interface Poolable {
     id: number
 }
 
 export class Pool<T extends Poolable> {
-    private inactiveElements: { [key: string]: T }
-    private activeElements: { [key: string]: T }
-    private maxPoolSize: number;
+    private inactiveElements: { [key: number]: T }
+    private activeElements: { [key: number]: T }
+    public maxPoolSize: number;
 
     constructor({ maxPoolSize }: { maxPoolSize?: number | undefined }) {
         this.inactiveElements = {}
@@ -16,43 +18,65 @@ export class Pool<T extends Poolable> {
     }
 
     add(element: T) {
-        this.inactiveElements[String(element.id)] = element
-        console.log({inactiveThis: this})
+        this.inactiveElements[element.id] = element
+        console.log({ inactiveThis: this })
     }
 
-    public isUnderMaxAllocation() {
+    public canAllocate() {
         return (Object.keys(this.activeElements).length < this.maxPoolSize) &&
             Object.keys(this.inactiveElements).length > 0
     }
 
-    private get(id: number, jobPool = this.inactiveElements) {
-        const job = jobPool[String(id)];
-        if (!job) { throw new Error('Expected job but found none.') }
-        return job;
+    private get(id: number, jobPool = this.inactiveElements): SimpleResult<T, Error> {
+        const job = jobPool[id];
+        if (!job) { return Result.Failure(new Error('Expected job but found none.')) }
+        return Result.Success(job);
     }
 
     public allocate(id?: number | undefined) {
-        if(!this.isUnderMaxAllocation()){
-            return;
+        if (!this.canAllocate()) {
+            throw new Error("Expected to be able to allocate but cannot.")
         }
-        if (typeof id !== 'number') {
+        if (typeof id === 'undefined') {
             const keys = Object.keys(this.inactiveElements)
-            console.log({keys})
             id = Number(keys[0])
         }
-        if(typeof id !== 'number'){
-            Logger.log("--- Could not find job id --- " + id)
-            Logger.log(`${JSON.stringify(this)}`)
-            return;
-        }
         const element = this.get(id, this.inactiveElements)
-        this.activeElements[String(id)] = this.get(id, this.inactiveElements)
+        if (element.failure) {
+            throw element.failure;
+        }
+        this.activateElement(id)
+        return element.success;
+    }
+
+    public activateElement(id: number) {
+        const inactiveElement = this.get(id, this.inactiveElements)
+        if (inactiveElement.failure) { throw inactiveElement.failure }
+        this.activeElements[id] = inactiveElement.success
         delete this.inactiveElements[id]
-        return element;
+    }
+
+    public deactivateElement(id: number) {
+        const activeElement = this.get(id, this.activeElements)
+        if (activeElement.failure) { 
+            Logger.log(`Failed to deactivate element ${id}`)
+            return 
+        }
+        this.inactiveElements[id] = activeElement.success
+        delete this.activeElements[id]
     }
 
     public delete(id: number) {
         Logger.log('Mark complete ' + id)
-        delete this.activeElements[String(id)]
+        delete this.activeElements[id]
+        delete this.inactiveElements[id]
+    }
+
+    public isActive(id: number) {
+        return this.activeElements[id] !== undefined
+    }
+
+    public get size() {
+        return Object.keys(this.inactiveElements).length + Object.keys(this.activeElements).length
     }
 }

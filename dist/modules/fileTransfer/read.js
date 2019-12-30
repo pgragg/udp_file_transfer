@@ -40,8 +40,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
 var fs_1 = __importDefault(require("fs"));
-var udpSocket_1 = require("../../entities/udpSocket");
-var readerMessageReceiver_1 = require("../socketMessage/useCases/readerMessageReceiver");
 var jobHandler_1 = require("../process/jobHandler");
 var chunkTransfer_1 = require("./chunkTransfer");
 var job_1 = require("../process/job");
@@ -49,7 +47,7 @@ var logger_1 = require("../../helpers/logger");
 exports.read = function (_a) {
     var port = _a.port, fileName = _a.fileName, chunkSize = _a.chunkSize;
     return __awaiter(_this, void 0, void 0, function () {
-        var jobHandler, stats, fileSizeInBytes, startByte, endByte, client, chunkTransfer, job;
+        var jobHandler, stats, fileSizeInBytes, startByte, endByte, chunkTransfer, job, jobRunnerId;
         return __generator(this, function (_b) {
             jobHandler = new jobHandler_1.JobHandler();
             stats = fs_1.default.statSync(fileName);
@@ -60,15 +58,20 @@ exports.read = function (_a) {
             while (startByte < fileSizeInBytes) {
                 logger_1.Logger.log({ startByte: startByte });
                 endByte = startByte + chunkSize;
-                client = udpSocket_1.UDPSocket.create({ messageReceiver: new readerMessageReceiver_1.ReaderMessageReceiver(jobHandler) });
-                chunkTransfer = new chunkTransfer_1.ChunkTransfer({ client: client, port: port, fileName: fileName, startByte: startByte, endByte: endByte });
+                chunkTransfer = new chunkTransfer_1.ChunkTransfer({ port: port, fileName: fileName, startByte: startByte, endByte: endByte });
                 job = new job_1.Job({ id: startByte, jobTask: chunkTransfer });
                 jobHandler.add(job);
                 startByte += chunkSize;
             }
-            // TODO: reuse clients in a clientPool;
-            // TODO: retry any jobs which don't succeed within a timeframe.
-            jobHandler.runJobs();
+            jobRunnerId = setInterval(function () {
+                jobHandler.runJobs();
+            }, 2000);
+            setInterval(function () {
+                if (jobHandler.isFinished()) {
+                    clearInterval(jobRunnerId);
+                    process.exit(0);
+                }
+            }, 100);
             return [2 /*return*/];
         });
     });

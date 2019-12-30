@@ -32,10 +32,10 @@ export class ReaderMessageReceiver implements IMessageReceiver {
     const status = message.payload;
     Logger.log(`Received status ${JSON.stringify(status)}`)
     if (status.status === 'success') {
-      if (!status.startByte) { return }
-
-      this.jobHandler.markComplete(status.startByte)
-
+      Logger.log(`Status was success at startByte ${status.startByte}`)
+      if (status.startByte === undefined || Number.isNaN(status.startByte)) { return }
+      Logger.log(`startByte present at ${status.startByte}`)
+      this.jobHandler.markComplete(Number(status.startByte))
     }
   }
 

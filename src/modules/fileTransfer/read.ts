@@ -19,20 +19,25 @@ export const read = async ({ port, fileName, chunkSize }: {
     const stats = fs.statSync(fileName);
     const fileSizeInBytes = stats.size;
     Logger.log({ fileSizeInBytes })
-    
+
     let startByte = 0;
-    Logger.log({totalWorkers: fileSizeInBytes/chunkSize})
+    Logger.log({ totalWorkers: fileSizeInBytes / chunkSize })
     while (startByte < fileSizeInBytes) {
         Logger.log({ startByte })
         const endByte = startByte + chunkSize;
-        const client = UDPSocket.create({ messageReceiver: new ReaderMessageReceiver(jobHandler) })
-        const chunkTransfer = new ChunkTransfer({ client, port, fileName, startByte, endByte });
+        const chunkTransfer = new ChunkTransfer({ port, fileName, startByte, endByte });
         const job = new Job({ id: startByte, jobTask: chunkTransfer })
         jobHandler.add(job)
         startByte += chunkSize;
     }
-    // TODO: reuse clients in a clientPool;
-    // TODO: retry any jobs which don't succeed within a timeframe.
-    jobHandler.runJobs();
+    const jobRunnerId = setInterval(() => {
+        jobHandler.runJobs()
+    }, 2000)
 
+    setInterval(() => {
+        if (jobHandler.isFinished()) {
+            clearInterval(jobRunnerId)
+            process.exit(0);
+        }
+    }, 100)
 }
