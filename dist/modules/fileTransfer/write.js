@@ -65,7 +65,6 @@ exports.write = function (_a) {
                 view_1 = new View(statistics_2);
                 setInterval(function () {
                     view_1.render();
-                    console.log({ statistics: statistics_2 });
                 }, 1000);
                 return [2 /*return*/, ports.map(function (port) {
                         return udpSocket_1.UDPSocket.create({ port: port, timeout: timeout, messageReceiver: new writerMessageReceiver_1.WriterMessageReceiver(targetFileName, statistics_2) });

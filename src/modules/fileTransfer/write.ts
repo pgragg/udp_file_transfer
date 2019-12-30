@@ -28,7 +28,6 @@ export const write = async ({ ports, targetFileName, timeout }: {
         const view = new View(statistics)
         setInterval(() => {
             view.render()
-            console.log({statistics})
         }, 1000)
         return ports.map((port) => {
             return UDPSocket.create({ port, timeout, messageReceiver: new WriterMessageReceiver(targetFileName, statistics) })

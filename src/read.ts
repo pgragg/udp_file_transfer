@@ -10,7 +10,9 @@ if (!module.parent) {
   process.env['DEBUG_LOG'] = 'false'
   read({
     writerPorts: generateWriterPorts({maxPoolSize: 2}),
-    chunkSize: 2,
+    // Ethernet frames limit packet size to 1500.
+    // We're using 1400 to be safe.
+    chunkSize: 1400,
     fileName: txtFile,
     maxPoolSize: 2
   }).then(() => {

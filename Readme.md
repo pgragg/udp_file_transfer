@@ -1,5 +1,17 @@
 ## UDP File Transfer 
 
+## Is it useful? 
+No 
+
+## Is it an improvement on anything? 
+No 
+
+## Is it, um, a useful proof of concept? 
+No 
+
+## Was it fun to build at least? 
+Yeah. 
+
 ### Quickstart: 
 Open two terminal windows. 
 
@@ -26,6 +38,11 @@ We use multiple writer sockets to receive data.
 
 Job size seems capped at around 1500-2000 bytes.
 
+
+BUGS: 
+- Copying over a PDF seems to end at 96% completion instead of full completion, which is strange because copying over a small bit of text seems fine.
+
 TODO: 
+- Performance is molasses.
 - Spawn multiple writer sockets from a third process, then take their ports and pass them in as targets for the read process.
 - Writer servers should timeout only n seconds after the last received message
