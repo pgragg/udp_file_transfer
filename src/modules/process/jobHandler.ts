@@ -1,14 +1,4 @@
-export class Job {
-    public id: number
-    private chunkTransferer: Promise<void>
-    constructor({ id, chunkTransferer }: { id: number, chunkTransferer: ChunkTransferer }) {
-        this.id = id;
-        this.chunkTransferer = chunkTransferer;
-    }
-    async execute() {
-        return await this.chunkTransferer.execute();
-    }
-}
+import { Job } from './job';
 
 export class JobHandler {
     private inactiveJobs: { [key: number]: Job }
@@ -27,14 +17,16 @@ export class JobHandler {
 
     runJobs() {
         while (this.shouldRunMoreJobs) {
-            console.log('Running next job')
             const job = Object.values(this.inactiveJobs)[0]
-            console.log({ job })
-            job.execute()
+            console.log(`Running next job: ${job.id}`)
+            this.start(job.id)
         }
     }
 
     private get shouldRunMoreJobs() {
+        console.log({activeJobs: this.activeJobs})
+        console.log({inactiveJobs: this.inactiveJobs})
+
         return (Object.keys(this.activeJobs).length < this.maxActiveJobs) && 
             Object.keys(this.inactiveJobs).length > 0
     }
@@ -53,6 +45,7 @@ export class JobHandler {
 
     private markActive(id: number) {
         this.activeJobs[id] = this.getJob(id, this.inactiveJobs)
+        delete this.inactiveJobs[id]
     }
 
     markComplete(id: number) {

@@ -2,9 +2,9 @@ import fs from 'fs'
 import { WriterMessageReceiver } from '../socketMessage/useCases/writerMessageReceiver'
 import { UDPSocket } from '../../entities/udpSocket'
 import { ReaderMessageReceiver } from '../socketMessage/useCases/readerMessageReceiver'
-import { JobHandler, Job } from '../process/jobHandler'
-
-
+import { JobHandler } from '../process/jobHandler'
+import { ChunkTransfer } from './chunkTransfer'
+import { Job } from '../process/job'
 
 export const transferFile = async ({ port, fileName, targetFileName }: {
     port: number, fileName: string, targetFileName: string
@@ -30,8 +30,8 @@ export const transferFile = async ({ port, fileName, targetFileName }: {
         console.log({ startByte })
         const endByte = startByte + chunkSize;
         const client = UDPSocket.create({ messageReceiver: new ReaderMessageReceiver(jobHandler) })
-        const chunkTransferer = new ChunkTransferer({ client, port, fileName, startByte, endByte });
-        const job = new Job({ id: startByte, chunkTransferer })
+        const chunkTransfer = new ChunkTransfer({ client, port, fileName, startByte, endByte });
+        const job = new Job({ id: startByte, jobTask: chunkTransfer })
         jobHandler.add(job)
         startByte += chunkSize;
     }

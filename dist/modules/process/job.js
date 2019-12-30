@@ -34,43 +34,30 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
-var fs_1 = __importDefault(require("fs"));
-var writerMessageReceiver_1 = require("../socketMessage/useCases/writerMessageReceiver");
-var udpSocket_1 = require("../../entities/udpSocket");
-var readerMessageReceiver_1 = require("../socketMessage/useCases/readerMessageReceiver");
-var jobHandler_1 = require("../process/jobHandler");
-var chunkTransfer_1 = require("./chunkTransfer");
-var job_1 = require("../process/job");
-exports.transferFile = function (_a) {
-    var port = _a.port, fileName = _a.fileName, targetFileName = _a.targetFileName;
-    return __awaiter(_this, void 0, void 0, function () {
-        var jobHandler, timeout, stats, fileSizeInBytes, chunkSize, startByte, promises, endByte, client, chunkTransfer, job;
-        return __generator(this, function (_b) {
-            jobHandler = new jobHandler_1.JobHandler();
-            timeout = 5000;
-            udpSocket_1.UDPSocket.create({ port: port, timeout: timeout, messageReceiver: new writerMessageReceiver_1.WriterMessageReceiver(targetFileName) });
-            stats = fs_1.default.statSync(fileName);
-            fileSizeInBytes = stats.size;
-            console.log({ fileSizeInBytes: fileSizeInBytes });
-            chunkSize = 1000;
-            startByte = 0;
-            promises = [];
-            while (startByte < fileSizeInBytes) {
-                console.log({ startByte: startByte });
-                endByte = startByte + chunkSize;
-                client = udpSocket_1.UDPSocket.create({ messageReceiver: new readerMessageReceiver_1.ReaderMessageReceiver(jobHandler) });
-                chunkTransfer = new chunkTransfer_1.ChunkTransfer({ client: client, port: port, fileName: fileName, startByte: startByte, endByte: endByte });
-                job = new job_1.Job({ id: startByte, jobTask: chunkTransfer });
-                jobHandler.add(job);
-                startByte += chunkSize;
-            }
-            jobHandler.runJobs();
-            return [2 /*return*/];
+var Job = /** @class */ (function () {
+    function Job(_a) {
+        var id = _a.id, jobTask = _a.jobTask;
+        this._id = id;
+        this.jobTask = jobTask;
+    }
+    Job.prototype.execute = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.jobTask.execute()];
+                    case 1: return [2 /*return*/, _a.sent()];
+                }
+            });
         });
+    };
+    Object.defineProperty(Job.prototype, "id", {
+        get: function () {
+            return Number(this._id);
+        },
+        enumerable: true,
+        configurable: true
     });
-};
+    return Job;
+}());
+exports.Job = Job;

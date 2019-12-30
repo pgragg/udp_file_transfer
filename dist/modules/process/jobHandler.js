@@ -35,25 +35,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var Job = /** @class */ (function () {
-    function Job(_a) {
-        var id = _a.id, chunkTransferer = _a.chunkTransferer;
-        this.id = id;
-        this.chunkTransferer = chunkTransferer;
-    }
-    Job.prototype.execute = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.chunkTransferer.execute()];
-                    case 1: return [2 /*return*/, _a.sent()];
-                }
-            });
-        });
-    };
-    return Job;
-}());
-exports.Job = Job;
 var JobHandler = /** @class */ (function () {
     function JobHandler() {
         this.inactiveJobs = {};
@@ -65,14 +46,15 @@ var JobHandler = /** @class */ (function () {
     };
     JobHandler.prototype.runJobs = function () {
         while (this.shouldRunMoreJobs) {
-            console.log('Running next job');
             var job = Object.values(this.inactiveJobs)[0];
-            console.log({ job: job });
-            job.execute();
+            console.log("Running next job: " + job.id);
+            this.start(job.id);
         }
     };
     Object.defineProperty(JobHandler.prototype, "shouldRunMoreJobs", {
         get: function () {
+            console.log({ activeJobs: this.activeJobs });
+            console.log({ inactiveJobs: this.inactiveJobs });
             return (Object.keys(this.activeJobs).length < this.maxActiveJobs) &&
                 Object.keys(this.inactiveJobs).length > 0;
         },
@@ -102,6 +84,7 @@ var JobHandler = /** @class */ (function () {
     };
     JobHandler.prototype.markActive = function (id) {
         this.activeJobs[id] = this.getJob(id, this.inactiveJobs);
+        delete this.inactiveJobs[id];
     };
     JobHandler.prototype.markComplete = function (id) {
         console.log('Mark complete ' + id);
