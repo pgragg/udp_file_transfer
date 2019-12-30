@@ -24,8 +24,9 @@ var Document = /** @class */ (function () {
 exports.Document = Document;
 var Status = /** @class */ (function () {
     function Status(_a) {
-        var status = _a.status;
+        var status = _a.status, startByte = _a.startByte;
         this.status = status;
+        this.startByte = startByte;
     }
     return Status;
 }());

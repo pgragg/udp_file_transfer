@@ -1,27 +1,11 @@
 import * as udp from 'dgram'
 import fs from 'fs'
 import stream from 'stream'
-import { SocketMessageReceiver } from '../socketMessage/useCases/socketMessageReceiver'
+import { WriterMessageReceiver } from '../socketMessage/useCases/writerMessageReceiver'
 import { UDPSocket } from '../../entities/udpSocket'
 import { Document, Message } from '../../entities/message'
-
-const readFile = async (filepath: string) => {
-    console.log(`Reading filepath ${filepath}`)
-    const file: Buffer = await new Promise((resolve, reject) => {
-        fs.readFile(filepath, {}, (err: NodeJS.ErrnoException | null, data: Buffer) => {
-            if (err) {
-                reject(err)
-            }
-            resolve(data)
-        })
-    })
-    return file;
-}
-
-const clientMessageCallback = (msg: Buffer, info: udp.RemoteInfo, socket: udp.Socket) => {
-    console.log('Data received from server : ' + msg.toString());
-    console.log('Received %d bytes from %s:%d\n', msg.length, info.address, info.port);
-}
+import { ReaderMessageReceiver } from '../socketMessage/useCases/readerMessageReceiver'
+import { JobHandler, Job } from '../process/jobHandler'
 
 const transferChunk = async ({ client, port, fileName, startByte, endByte }: {
     client: udp.Socket, port: number, fileName: string, startByte: number, endByte: number
@@ -63,23 +47,26 @@ export const transferFile = async ({ port, fileName, targetFileName }: {
     // The server will receive the Message and verify the checksum 
     // if the checksum does not pass, the server will respond with a failure message
     // if the checksum does pass, the server will respond with a success message.
+    const jobHandler = new JobHandler()
 
     const timeout = 5000;
-    UDPSocket.create({ port, timeout, messageReceiver: new SocketMessageReceiver(targetFileName) })
-    const client = UDPSocket.create({ timeout, messageReceiver: { receiveMessage: clientMessageCallback } })
+    UDPSocket.create({ port, timeout, messageReceiver: new WriterMessageReceiver(targetFileName) })
 
-    
     const stats = fs.statSync(fileName);
     const fileSizeInBytes = stats.size;
-    const chunkSize = 10;
+    console.log({ fileSizeInBytes })
+    const chunkSize = 1000;
     let startByte = 0;
 
     let promises: Promise<any>[] = [];
-    while(startByte < fileSizeInBytes){
+    while (startByte < fileSizeInBytes) {
         const endByte = startByte + chunkSize;
-        promises.push(transferChunk({client, port, fileName, startByte, endByte}))
+        const client = UDPSocket.create({ messageReceiver: new ReaderMessageReceiver(jobHandler) })
+        const taskPromise = transferChunk({ client, port, fileName, startByte, endByte });
+        const job = new Job({id: startByte, task: taskPromise})
+        jobHandler.add(job)
         startByte += chunkSize;
     }
-    await Promise.all(promises);
+    jobHandler.runJobs();
 
 }

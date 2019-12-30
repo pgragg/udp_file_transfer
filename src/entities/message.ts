@@ -24,8 +24,10 @@ export class Document {
 
 export class Status {
     public status: 'success' | 'failure'
-    constructor({status}: {status: 'success' | 'failure'}){
+    public startByte: number | undefined;
+    constructor({status, startByte}: {status: 'success' | 'failure', startByte?: number}){
         this.status = status;
+        this.startByte = startByte;
     }
 }
 
