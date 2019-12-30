@@ -12,7 +12,7 @@ var UDPSocket = /** @class */ (function () {
     function UDPSocket() {
     }
     UDPSocket.create = function (_a) {
-        var port = _a.port, _b = _a.timeout, timeout = _b === void 0 ? 8000 : _b, messageCallback = _a.messageCallback;
+        var port = _a.port, _b = _a.timeout, timeout = _b === void 0 ? 8000 : _b, messageReceiver = _a.messageReceiver;
         // creating a udp server
         var socket = udp.createSocket("udp4");
         // emits when any error occurs
@@ -22,7 +22,7 @@ var UDPSocket = /** @class */ (function () {
         });
         // emits on new datagram msg
         socket.on("message", function (msg, info) {
-            messageCallback(msg, info, socket);
+            messageReceiver.receiveMessage(msg, info, socket);
         });
         //emits when socket is ready and listening for datagram msgs
         socket.on("listening", function () {

@@ -14,8 +14,8 @@ export const MessageCheckSumMismatchMessage = 'Error: Message checksum mismatch.
 export class Document {
     public startByte: number;
     public endByte: number;
-    public data: string | Buffer;
-    constructor({ startByte, endByte, data }: { startByte: number, endByte: number, data:  string | Buffer }) {
+    public data: string;
+    constructor({ startByte, endByte, data }: { startByte: number, endByte: number, data: string}) {
         this.startByte = startByte;
         this.endByte = endByte;
         this.data = data;

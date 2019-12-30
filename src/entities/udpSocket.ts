@@ -1,13 +1,15 @@
 import * as udp from 'dgram'
 
-type MessageCallback = (msg: Buffer, info: udp.RemoteInfo, socket: udp.Socket) => void
+export interface IMessageReceiver {
+  receiveMessage(msg: Buffer, info: udp.RemoteInfo, socket: udp.Socket): void
+}
 
 export class UDPSocket {
   static create({
     port,
     timeout = 8000,
-    messageCallback
-  }: { port?: number | undefined, timeout?: number, messageCallback: MessageCallback }) {
+    messageReceiver
+  }: { port?: number | undefined, timeout?: number, messageReceiver: IMessageReceiver }) {
 
     // creating a udp server
     var socket = udp.createSocket("udp4");
@@ -20,7 +22,7 @@ export class UDPSocket {
 
     // emits on new datagram msg
     socket.on("message", (msg, info) => {
-      messageCallback(msg, info, socket)
+      messageReceiver.receiveMessage(msg, info, socket)
     });
 
     //emits when socket is ready and listening for datagram msgs

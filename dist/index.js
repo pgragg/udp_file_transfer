@@ -43,7 +43,7 @@ var udpSocket_1 = require("./entities/udpSocket");
 var message_1 = require("./entities/message");
 var fs_1 = __importDefault(require("fs"));
 var stream_1 = __importDefault(require("stream"));
-var receiveSocketMessage_1 = require("./modules/socketMessage/useCases/receiveSocketMessage");
+var socketMessageReceiver_1 = require("./modules/socketMessage/useCases/socketMessageReceiver");
 var readFile = function (filepath) { return __awaiter(_this, void 0, void 0, function () {
     var file;
     return __generator(this, function (_a) {
@@ -69,15 +69,15 @@ var clientMessageCallback = function (msg, info, socket) {
     console.log('Received %d bytes from %s:%d\n', msg.length, info.address, info.port);
 };
 var duplicateFile = function (_a) {
-    var port = _a.port, fileName = _a.fileName, startByte = _a.startByte, endByte = _a.endByte;
+    var port = _a.port, fileName = _a.fileName, targetFileName = _a.targetFileName, startByte = _a.startByte, endByte = _a.endByte;
     return __awaiter(_this, void 0, void 0, function () {
         var timeout, client, file, buffer, writable;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
-                    timeout = 2000;
-                    udpSocket_1.UDPSocket.create({ port: port, timeout: timeout, messageCallback: receiveSocketMessage_1.ReceiveSocketMessage.execute });
-                    client = udpSocket_1.UDPSocket.create({ timeout: timeout, messageCallback: clientMessageCallback });
+                    timeout = 5000;
+                    udpSocket_1.UDPSocket.create({ port: port, timeout: timeout, messageReceiver: new socketMessageReceiver_1.SocketMessageReceiver(targetFileName) });
+                    client = udpSocket_1.UDPSocket.create({ timeout: timeout, messageReceiver: { receiveMessage: clientMessageCallback } });
                     return [4 /*yield*/, readFile(fileName)];
                 case 1:
                     file = _b.sent();
@@ -121,8 +121,8 @@ if (!module.parent) {
     // }
     // The server will receive the Message and verify the checksum 
     // if the checksum does not pass, the server will respond with a failure message
-    // if the checksum does pass, the server will respond with a success message. 
-    duplicateFile({ port: 2222, fileName: './src/files/typescript.pdf', startByte: 0, endByte: 10 }).then(function () {
+    // if the checksum does pass, the server will respond with a success message.
+    duplicateFile({ port: 2222, fileName: './src/files/typescript.pdf', targetFileName: './src/files/typescript2.pdf', startByte: 0, endByte: 10 }).then(function () {
         console.log("Done");
     });
 }

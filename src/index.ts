@@ -3,7 +3,7 @@ import { UDPSocket } from './entities/udpSocket'
 import { Message, Document } from './entities/message'
 import fs from 'fs'
 import stream from 'stream'
-import { ReceiveSocketMessage } from './modules/socketMessage/useCases/receiveSocketMessage'
+import { SocketMessageReceiver } from './modules/socketMessage/useCases/socketMessageReceiver'
 
 const readFile = async (filepath: string) => {
   console.log(`Reading filepath ${filepath}`)
@@ -23,13 +23,13 @@ const clientMessageCallback = (msg: Buffer, info: udp.RemoteInfo, socket: udp.So
   console.log('Received %d bytes from %s:%d\n', msg.length, info.address, info.port);
 }
 
-const duplicateFile = async ({ port, fileName, startByte, endByte }: {
-  port: number, fileName: string, startByte: number, endByte: number
+const duplicateFile = async ({ port, fileName, targetFileName, startByte, endByte }: {
+  port: number, fileName: string, targetFileName: string, startByte: number, endByte: number
 }) => {
-  const timeout = 2000;
+  const timeout = 5000;
 
-  UDPSocket.create({ port, timeout, messageCallback: ReceiveSocketMessage.execute })
-  const client = UDPSocket.create({ timeout, messageCallback: clientMessageCallback })
+  UDPSocket.create({ port, timeout, messageReceiver: new SocketMessageReceiver(targetFileName) })
+  const client = UDPSocket.create({ timeout, messageReceiver: {receiveMessage: clientMessageCallback} })
 
   // let file = await readFile('./src/files/typescript.pdf')
   let file = await readFile(fileName)
@@ -79,8 +79,8 @@ if (!module.parent) {
   // }
   // The server will receive the Message and verify the checksum 
   // if the checksum does not pass, the server will respond with a failure message
-  // if the checksum does pass, the server will respond with a success message. 
-  duplicateFile({ port: 2222, fileName: './src/files/typescript.pdf', startByte: 0, endByte: 10 }).then(() => {
+  // if the checksum does pass, the server will respond with a success message.
+  duplicateFile({ port: 2222, fileName: './src/files/typescript.pdf', targetFileName: './src/files/typescript2.pdf', startByte: 0, endByte: 10 }).then(() => {
     console.log("Done")
   })
 }
