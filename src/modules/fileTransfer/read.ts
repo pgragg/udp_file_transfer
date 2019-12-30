@@ -31,6 +31,8 @@ export const read = async ({ port, fileName, chunkSize }: {
         jobHandler.add(job)
         startByte += chunkSize;
     }
+    // TODO: reuse clients in a clientPool;
+    // TODO: retry any jobs which don't succeed within a timeframe.
     jobHandler.runJobs();
 
 }

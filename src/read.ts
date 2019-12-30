@@ -17,7 +17,7 @@ if (!module.parent) {
   process.env['DEBUG_LOG'] = 'true'
   read({
     port: 2222,
-    chunkSize: 1,
+    chunkSize: 20,
     fileName: './src/files/smol.txt'
   }).then(() => {
     Logger.log("Done")

@@ -4,6 +4,6 @@ if (!module.parent) {
   process.env['DEBUG_LOG'] = 'true'
   write({
     port: 2222,
-    targetFileName: './src/files/targetFileOut.txt'
+    targetFileName: './src/files/smolCopy.txt'
   })
 }
