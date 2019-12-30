@@ -1,55 +1,33 @@
 import { Job } from './job';
+import { Logger } from '../../helpers/logger';
+import { Pool } from './pool';
 
 export class JobHandler {
-    private inactiveJobs: { [key: number]: Job }
-    private activeJobs: { [key: number]: Job }
-    private maxActiveJobs: number;
+    private jobPool: Pool<Job>;
 
     constructor() {
-        this.inactiveJobs = {}
-        this.activeJobs = {}
-        this.maxActiveJobs = 5;
+        this.jobPool = new Pool<Job>({ maxPoolSize: 5 })
     }
 
     add(job: Job) {
-        this.inactiveJobs[job.id] = job
+        this.jobPool.add(job)
     }
 
     runJobs() {
-        while (this.shouldRunMoreJobs) {
-            const job = Object.values(this.inactiveJobs)[0]
-            console.log(`Running next job: ${job.id}`)
-            this.start(job.id)
+        while (this.jobPool.isUnderMaxAllocation()) {
+            const job = this.jobPool.allocate();
+            if (!job) { break }
+            Logger.log(`Running next job: ${job.id}`)
+            this.start(job)
         }
     }
 
-    private get shouldRunMoreJobs() {
-        console.log({activeJobs: this.activeJobs})
-        console.log({inactiveJobs: this.inactiveJobs})
-
-        return (Object.keys(this.activeJobs).length < this.maxActiveJobs) && 
-            Object.keys(this.inactiveJobs).length > 0
-    }
-
-    private async start(id: number) {
-        // If this process times out, we have no way of marking the job inactive :/ 
-        this.markActive(id);
-        return await this.getJob(id, this.activeJobs).execute()
-    }
-
-    private getJob(id: number, jobPool = this.inactiveJobs) {
-        const job = jobPool[id];
-        if (!job) { throw new Error('Expected job but found none.') }
-        return job;
-    }
-
-    private markActive(id: number) {
-        this.activeJobs[id] = this.getJob(id, this.inactiveJobs)
-        delete this.inactiveJobs[id]
+    private async start(job: Job) {
+        return await job.execute()
     }
 
     markComplete(id: number) {
-        console.log('Mark complete ' + id)
-        delete this.activeJobs[id]
+        Logger.log('Mark complete ' + id)
+        this.jobPool.delete(id)
     }
 }

@@ -2,12 +2,12 @@
 // import * as udp from 'dgram'
 // import { UDPSocket } from './entities/udpSocket'
 // const clientMessageCallback = (msg: Buffer, info: udp.RemoteInfo, socket: udp.Socket) => {
-//   console.log('Data received from server : ' + msg.toString());
-//   console.log('Received %d bytes from %s:%d\n', msg.length, info.address, info.port);
+//   Logger.log('Data received from server : ' + msg.toString());
+//   Logger.log('Received %d bytes from %s:%d\n', msg.length, info.address, info.port);
 // }
 // const serverMessageCallback = (msg: Buffer, info: udp.RemoteInfo, socket: udp.Socket) => {
-//   console.log("Data received from client : " + msg.toString());
-//   console.log(
+//   Logger.log("Data received from client : " + msg.toString());
+//   Logger.log(
 //     "Received %d bytes from %s:%d\n",
 //     msg.length,
 //     info.address,
@@ -18,7 +18,7 @@
 //     if (error) {
 //       socket.close();
 //     } else {
-//       console.log(`Server sent response to client on port ${info.port} after message receipt`);
+//       Logger.log(`Server sent response to client on port ${info.port} after message receipt`);
 //     }
 //   });
 // }
@@ -32,6 +32,6 @@
 //   if (error) {
 //     client.close();
 //   } else {
-//     console.log(`Data sent to port ${serverPort}`);
+//     Logger.log(`Data sent to port ${serverPort}`);
 //   }
 // });

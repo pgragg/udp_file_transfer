@@ -35,60 +35,38 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+var logger_1 = require("../../helpers/logger");
+var pool_1 = require("./pool");
 var JobHandler = /** @class */ (function () {
     function JobHandler() {
-        this.inactiveJobs = {};
-        this.activeJobs = {};
-        this.maxActiveJobs = 5;
+        this.jobPool = new pool_1.Pool({ maxPoolSize: 5 });
     }
     JobHandler.prototype.add = function (job) {
-        this.inactiveJobs[job.id] = job;
+        this.jobPool.add(job);
     };
     JobHandler.prototype.runJobs = function () {
-        while (this.shouldRunMoreJobs) {
-            var job = Object.values(this.inactiveJobs)[0];
-            console.log("Running next job: " + job.id);
-            this.start(job.id);
+        while (this.jobPool.isUnderMaxAllocation()) {
+            var job = this.jobPool.allocate();
+            if (!job) {
+                break;
+            }
+            logger_1.Logger.log("Running next job: " + job.id);
+            this.start(job);
         }
     };
-    Object.defineProperty(JobHandler.prototype, "shouldRunMoreJobs", {
-        get: function () {
-            console.log({ activeJobs: this.activeJobs });
-            console.log({ inactiveJobs: this.inactiveJobs });
-            return (Object.keys(this.activeJobs).length < this.maxActiveJobs) &&
-                Object.keys(this.inactiveJobs).length > 0;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    JobHandler.prototype.start = function (id) {
+    JobHandler.prototype.start = function (job) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0:
-                        // If this process times out, we have no way of marking the job inactive :/ 
-                        this.markActive(id);
-                        return [4 /*yield*/, this.getJob(id, this.activeJobs).execute()];
+                    case 0: return [4 /*yield*/, job.execute()];
                     case 1: return [2 /*return*/, _a.sent()];
                 }
             });
         });
     };
-    JobHandler.prototype.getJob = function (id, jobPool) {
-        if (jobPool === void 0) { jobPool = this.inactiveJobs; }
-        var job = jobPool[id];
-        if (!job) {
-            throw new Error('Expected job but found none.');
-        }
-        return job;
-    };
-    JobHandler.prototype.markActive = function (id) {
-        this.activeJobs[id] = this.getJob(id, this.inactiveJobs);
-        delete this.inactiveJobs[id];
-    };
     JobHandler.prototype.markComplete = function (id) {
-        console.log('Mark complete ' + id);
-        delete this.activeJobs[id];
+        logger_1.Logger.log('Mark complete ' + id);
+        this.jobPool.delete(id);
     };
     return JobHandler;
 }());

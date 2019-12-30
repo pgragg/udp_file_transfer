@@ -8,6 +8,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var udp = __importStar(require("dgram"));
+var logger_1 = require("../helpers/logger");
 var UDPSocket = /** @class */ (function () {
     function UDPSocket() {
     }
@@ -17,7 +18,7 @@ var UDPSocket = /** @class */ (function () {
         var socket = udp.createSocket("udp4");
         // emits when any error occurs
         socket.on("error", function (error) {
-            console.log("Error: " + error);
+            logger_1.Logger.log("Error: " + error);
             socket.close();
         });
         // emits on new datagram msg
@@ -30,13 +31,13 @@ var UDPSocket = /** @class */ (function () {
             var port = address.port;
             var family = address.family;
             var ipaddr = address.address;
-            console.log("socket is listening at port: " + port);
-            console.log("socket ip :" + ipaddr);
-            console.log("socket is IP4/IP6 : " + family);
+            logger_1.Logger.log("socket is listening at port: " + port);
+            logger_1.Logger.log("socket ip :" + ipaddr);
+            logger_1.Logger.log("socket is IP4/IP6 : " + family);
         });
         //emits after the socket is closed using socket.close();
         socket.on("close", function () {
-            console.log("Socket is closed !");
+            logger_1.Logger.log("Socket is closed !");
         });
         if (port) {
             socket.bind(port);

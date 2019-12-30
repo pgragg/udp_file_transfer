@@ -1,6 +1,7 @@
 import crypto from 'crypto'
 import { Result } from '../helpers/result'
 import { SimpleResult } from '../helpers/SimpleResult'
+import { Logger } from '../helpers/logger'
 
 const checksum = (str: string) => {
     return crypto
@@ -45,8 +46,10 @@ export class Message {
     public static fromString(docString: string): SimpleResult<Message, Error> {
         const doc = JSON.parse(docString)
         if (doc.checksum === Message.calculateChecksum(doc)) {
+            
             return Result.Success(doc as Message)
         }
+        Logger.log(MessageCheckSumMismatchMessage)
         return Result.Failure(new Error(MessageCheckSumMismatchMessage))
     }
 

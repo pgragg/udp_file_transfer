@@ -2,6 +2,7 @@ import * as udp from 'dgram'
 import fs from 'fs'
 import stream from 'stream'
 import { Document, Message } from '../../entities/message'
+import { Logger } from '../../helpers/logger'
 
 export class ChunkTransfer {
     private client: udp.Socket
@@ -40,12 +41,9 @@ export class ChunkTransfer {
             ).toString()
 
             const client = this.client;
-            const port = this.port;
             this.client.send(message, this.port, 'localhost', function (error: any) {
                 if (error) {
                     client.close();
-                } else {
-                    console.log(`Data sent to port ${port}`);
                 }
             })
         })

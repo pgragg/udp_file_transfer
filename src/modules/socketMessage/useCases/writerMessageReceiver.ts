@@ -2,11 +2,12 @@ import { Message, Status } from '../../../entities/message';
 import * as udp from 'dgram'
 import fs from 'fs'
 import { IMessageReceiver } from '../../../entities/udpSocket';
+import { Logger } from '../../../helpers/logger';
 
 export class WriterMessageReceiver implements IMessageReceiver {
   constructor(private targetFileName: string) { }
   public receiveMessage(msg: Buffer, info: udp.RemoteInfo, socket: udp.Socket) {
-    console.log(
+    Logger.log(
       "Received %d bytes from %s:%d\n",
       msg.length,
       info.address,
@@ -15,7 +16,7 @@ export class WriterMessageReceiver implements IMessageReceiver {
 
     const message = Message.fromString(msg.toString())
     if (message.success) {
-      console.log(`Successfully received Message ${JSON.stringify(message)}`)
+      Logger.log(`Successfully received Message ${JSON.stringify(message)}`)
       this.sendResponse(socket, info.port, 'success', message.success.payload.startByte)
       this.enactMessage(message.success);
     } else {
@@ -32,7 +33,7 @@ export class WriterMessageReceiver implements IMessageReceiver {
     const buffer = Buffer.from(document.data)
 
     fs.write(fileDescriptor, buffer, 0, buffer.length, document.startByte, (err: NodeJS.ErrnoException | null, writtenBytes: number, buffer: Buffer) => {
-      console.log(`Wrote ${writtenBytes} bytes to file`);
+      Logger.log(`Wrote ${writtenBytes} bytes to file`);
     });
 
   }
@@ -46,7 +47,7 @@ export class WriterMessageReceiver implements IMessageReceiver {
       if (error) {
         socket.close();
       } else {
-        console.log(`Server sent response to client on port ${port} after message receipt`);
+        Logger.log(`Server sent response to client on port ${port} after message receipt`);
       }
     });
   }

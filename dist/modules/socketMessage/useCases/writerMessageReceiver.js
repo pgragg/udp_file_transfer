@@ -5,15 +5,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var message_1 = require("../../../entities/message");
 var fs_1 = __importDefault(require("fs"));
+var logger_1 = require("../../../helpers/logger");
 var WriterMessageReceiver = /** @class */ (function () {
     function WriterMessageReceiver(targetFileName) {
         this.targetFileName = targetFileName;
     }
     WriterMessageReceiver.prototype.receiveMessage = function (msg, info, socket) {
-        console.log("Received %d bytes from %s:%d\n", msg.length, info.address, info.port);
+        logger_1.Logger.log("Received %d bytes from %s:%d\n", msg.length, info.address, info.port);
         var message = message_1.Message.fromString(msg.toString());
         if (message.success) {
-            console.log("Successfully received Message " + JSON.stringify(message));
+            logger_1.Logger.log("Successfully received Message " + JSON.stringify(message));
             this.sendResponse(socket, info.port, 'success', message.success.payload.startByte);
             this.enactMessage(message.success);
         }
@@ -29,7 +30,7 @@ var WriterMessageReceiver = /** @class */ (function () {
         var fileDescriptor = fs_1.default.openSync(this.targetFileName, 'a');
         var buffer = Buffer.from(document.data);
         fs_1.default.write(fileDescriptor, buffer, 0, buffer.length, document.startByte, function (err, writtenBytes, buffer) {
-            console.log("Wrote " + writtenBytes + " bytes to file");
+            logger_1.Logger.log("Wrote " + writtenBytes + " bytes to file");
         });
     };
     WriterMessageReceiver.prototype.sendResponse = function (socket, port, status, startByte) {
@@ -39,7 +40,7 @@ var WriterMessageReceiver = /** @class */ (function () {
                 socket.close();
             }
             else {
-                console.log("Server sent response to client on port " + port + " after message receipt");
+                logger_1.Logger.log("Server sent response to client on port " + port + " after message receipt");
             }
         });
     };

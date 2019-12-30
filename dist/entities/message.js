@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var crypto_1 = __importDefault(require("crypto"));
 var result_1 = require("../helpers/result");
+var logger_1 = require("../helpers/logger");
 var checksum = function (str) {
     return crypto_1.default
         .createHash('md5')
@@ -45,6 +46,7 @@ var Message = /** @class */ (function () {
         if (doc.checksum === Message.calculateChecksum(doc)) {
             return result_1.Result.Success(doc);
         }
+        logger_1.Logger.log(exports.MessageCheckSumMismatchMessage);
         return result_1.Result.Failure(new Error(exports.MessageCheckSumMismatchMessage));
     };
     Message.calculateChecksum = function (doc) {

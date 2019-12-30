@@ -67,13 +67,9 @@ var ChunkTransfer = /** @class */ (function () {
                 writable.on('finish', function () {
                     var message = new message_1.Message(new message_1.Document({ startByte: _this.startByte, endByte: _this.endByte, data: buffer.join('') })).toString();
                     var client = _this.client;
-                    var port = _this.port;
                     _this.client.send(message, _this.port, 'localhost', function (error) {
                         if (error) {
                             client.close();
-                        }
-                        else {
-                            console.log("Data sent to port " + port);
                         }
                     });
                 });
