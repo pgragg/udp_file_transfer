@@ -1,13 +1,16 @@
 ## UDP File Transfer 
 
-Quickstart: 
+### Quickstart: 
 Open two terminal windows. 
+
 In one, run `npm run write`. This will start a localhost server which listens for udp connections on port 2222.
+
 In another terminal window, run `npm run read`. This will start many client processes which communicate with the write server.
 
-How does this work? 
 
-dist/index.js starts a process to transfer a file to a targetFileName over a port using UDP. 
+#### How does this work? 
+
+`dist/read.js` starts a process to transfer a file to a targetFileName over a port using UDP. 
 
 It does this by creating a master process and attaching a number of "client" processes, each of which is assigned a startByte and endByte to transfer over UDP to the 'writerMessageReceiver', which then writes the bytes. 
 
