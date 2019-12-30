@@ -4,21 +4,21 @@ import stream from 'stream'
 import { Document, Message } from '../../entities/message'
 
 export class ChunkTransfer {
-    private port: number
     private fileName: string
     private startByte: number
     private endByte: number
+    private totalBytes: number
 
-    constructor({ port, fileName, startByte, endByte }: {
-        port: number, fileName: string, startByte: number, endByte: number
+    constructor({ fileName, startByte, endByte, totalBytes}: {
+        fileName: string, startByte: number, endByte: number, totalBytes: number
     }) {
-        this.port = port
         this.fileName = fileName
         this.startByte = startByte
         this.endByte = endByte
+        this.totalBytes = totalBytes
     }
 
-    async execute(client: udp.Socket) {
+    async execute(client: udp.Socket, port: number) {
 
         let buffer: string[] = [];
         const writable = new stream.Writable({
@@ -33,10 +33,10 @@ export class ChunkTransfer {
 
         writable.on('finish', () => {
             const message = new Message(
-                new Document({ startByte: this.startByte, endByte: this.endByte, data: buffer.join('') })
+                new Document({ startByte: this.startByte, totalBytes: this.totalBytes, data: buffer.join('') })
             ).toString()
 
-            client.send(message, this.port, 'localhost', function (error: any) {
+            client.send(message, port, 'localhost', function (error: any) {
                 if (error) {
                     client.close();
                 }

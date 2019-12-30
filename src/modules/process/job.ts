@@ -1,6 +1,6 @@
 import * as udp from 'dgram'
 interface JobTask {
-    execute: (client: udp.Socket) => Promise<void>;
+    execute: (client: udp.Socket, port: number) => Promise<void>;
 }
 export class Job {
     private _id: number
@@ -10,8 +10,8 @@ export class Job {
         this.jobTask = jobTask;
     }
 
-    async execute(client: udp.Socket) {
-        return await this.jobTask.execute(client);
+    async execute(client: udp.Socket, port: number) {
+        return await this.jobTask.execute(client, port);
     }
 
     get id() {

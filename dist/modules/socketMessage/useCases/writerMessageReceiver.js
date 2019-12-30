@@ -43,8 +43,9 @@ var fs_1 = __importDefault(require("fs"));
 var logger_1 = require("../../../helpers/logger");
 var result_1 = require("../../../helpers/result");
 var WriterMessageReceiver = /** @class */ (function () {
-    function WriterMessageReceiver(targetFileName) {
+    function WriterMessageReceiver(targetFileName, statistics) {
         this.targetFileName = targetFileName;
+        this.statistics = statistics;
     }
     WriterMessageReceiver.prototype.receiveMessage = function (msg, info, socket) {
         var message = message_1.Message.fromString(msg.toString());
@@ -52,8 +53,10 @@ var WriterMessageReceiver = /** @class */ (function () {
             logger_1.Logger.log("Successfully received message with startByte: " + message.success.payload.startByte);
             this.enactMessage(message.success);
             this.sendResponse(socket, info.port, 'success', message.success.payload.startByte);
+            this.statistics.success(message.success);
         }
         else {
+            this.statistics.failure(message.failure);
             this.sendResponse(socket, info.port, 'failure');
         }
     };

@@ -41,11 +41,11 @@ var Job = /** @class */ (function () {
         this._id = id;
         this.jobTask = jobTask;
     }
-    Job.prototype.execute = function (client) {
+    Job.prototype.execute = function (client, port) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.jobTask.execute(client)];
+                    case 0: return [4 /*yield*/, this.jobTask.execute(client, port)];
                     case 1: return [2 /*return*/, _a.sent()];
                 }
             });

@@ -38,10 +38,24 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var pool_1 = require("./pool");
 var udpSocket_1 = require("../../entities/udpSocket");
 var readerMessageReceiver_1 = require("../socketMessage/useCases/readerMessageReceiver");
+var logger_1 = require("../../helpers/logger");
+var CircularArray = /** @class */ (function () {
+    function CircularArray(array) {
+        this.array = array;
+        this.i = 0;
+    }
+    CircularArray.prototype.next = function () {
+        var item = this.array[this.i];
+        this.i = ((this.i + 1) === this.array.length ? 0 : this.i + 1);
+        return item;
+    };
+    return CircularArray;
+}());
 var JobHandler = /** @class */ (function () {
     function JobHandler(_a) {
-        var maxPoolSize = _a.maxPoolSize;
+        var maxPoolSize = _a.maxPoolSize, writerPorts = _a.writerPorts;
         this.jobPool = new pool_1.Pool({ maxPoolSize: maxPoolSize });
+        this.writerPorts = new CircularArray(writerPorts);
     }
     JobHandler.prototype.add = function (job) {
         this.jobPool.add(job);
@@ -57,7 +71,7 @@ var JobHandler = /** @class */ (function () {
     };
     JobHandler.prototype.start = function (job) {
         return __awaiter(this, void 0, void 0, function () {
-            var timeout, client;
+            var timeout, client, port;
             var _this = this;
             return __generator(this, function (_a) {
                 switch (_a.label) {
@@ -65,7 +79,9 @@ var JobHandler = /** @class */ (function () {
                         timeout = 1500;
                         client = udpSocket_1.UDPSocket.create({ messageReceiver: new readerMessageReceiver_1.ReaderMessageReceiver(this), timeout: 1000 });
                         setTimeout(function () { _this.markIncomplete(job.id); }, timeout);
-                        return [4 /*yield*/, job.execute(client)];
+                        port = this.writerPorts.next();
+                        logger_1.Logger.log("Sending data to port " + port);
+                        return [4 /*yield*/, job.execute(client, port)];
                     case 1: return [2 /*return*/, _a.sent()];
                 }
             });

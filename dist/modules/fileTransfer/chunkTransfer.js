@@ -43,13 +43,13 @@ var stream_1 = __importDefault(require("stream"));
 var message_1 = require("../../entities/message");
 var ChunkTransfer = /** @class */ (function () {
     function ChunkTransfer(_a) {
-        var port = _a.port, fileName = _a.fileName, startByte = _a.startByte, endByte = _a.endByte;
-        this.port = port;
+        var fileName = _a.fileName, startByte = _a.startByte, endByte = _a.endByte, totalBytes = _a.totalBytes;
         this.fileName = fileName;
         this.startByte = startByte;
         this.endByte = endByte;
+        this.totalBytes = totalBytes;
     }
-    ChunkTransfer.prototype.execute = function (client) {
+    ChunkTransfer.prototype.execute = function (client, port) {
         return __awaiter(this, void 0, void 0, function () {
             var buffer, writable;
             var _this = this;
@@ -64,8 +64,8 @@ var ChunkTransfer = /** @class */ (function () {
                 fs_1.default.createReadStream(this.fileName, { start: this.startByte, end: this.endByte })
                     .pipe(writable);
                 writable.on('finish', function () {
-                    var message = new message_1.Message(new message_1.Document({ startByte: _this.startByte, endByte: _this.endByte, data: buffer.join('') })).toString();
-                    client.send(message, _this.port, 'localhost', function (error) {
+                    var message = new message_1.Message(new message_1.Document({ startByte: _this.startByte, totalBytes: _this.totalBytes, data: buffer.join('') })).toString();
+                    client.send(message, port, 'localhost', function (error) {
                         if (error) {
                             client.close();
                         }

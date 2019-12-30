@@ -15,11 +15,11 @@ export const InvalidJSONFormatMessage = 'Error: invalid JSON. Could not parse.'
 
 export class Document {
     public startByte: number;
-    public endByte: number;
+    public totalBytes: number;
     public data: string;
-    constructor({ startByte, endByte, data }: { startByte: number, endByte: number, data: string }) {
+    constructor({ startByte, totalBytes, data }: { startByte: number, totalBytes: number, data: string }) {
         this.startByte = startByte;
-        this.endByte = endByte;
+        this.totalBytes = totalBytes;
         this.data = data;
     }
 }

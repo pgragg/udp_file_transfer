@@ -16,9 +16,9 @@ exports.MessageCheckSumMismatchMessage = 'Error: Message checksum mismatch.';
 exports.InvalidJSONFormatMessage = 'Error: invalid JSON. Could not parse.';
 var Document = /** @class */ (function () {
     function Document(_a) {
-        var startByte = _a.startByte, endByte = _a.endByte, data = _a.data;
+        var startByte = _a.startByte, totalBytes = _a.totalBytes, data = _a.data;
         this.startByte = startByte;
-        this.endByte = endByte;
+        this.totalBytes = totalBytes;
         this.data = data;
     }
     return Document;

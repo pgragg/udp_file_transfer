@@ -20,6 +20,12 @@ The write server, when it receives the Message, verifies the checksum of the mes
 if the checksum does not pass, the server will respond with a failure message
 if the checksum does pass, the server will respond with a success message.
 
+We do not reuse clients, but rather create new clients for each new job. (A client pool may improve performance)
+We retry any jobs which don't succeed within a timeout. 
+
+Job size seems capped at around 1500-2000 bytes.
+
 TODO: 
-- reuse clients in a clientPool
-- retry any jobs which don't succeed within a timeframe.
+- Use multiple writer servers 
+- Spawn multiple writer sockets from a third process, then take their ports and pass them in as targets for the read process.
+- Writer servers should timeout only n seconds after the last received message

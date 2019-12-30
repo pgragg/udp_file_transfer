@@ -3,31 +3,26 @@ import { JobHandler } from '../process/jobHandler'
 import { ChunkTransfer } from './chunkTransfer'
 import { Job } from '../process/job'
 
-export const read = async ({ port, fileName, chunkSize, maxPoolSize }: {
-    port: number, fileName: string, chunkSize: number, maxPoolSize: number
+export const read = async ({ writerPorts, fileName, chunkSize, maxPoolSize }: {
+    writerPorts: number[], fileName: string, chunkSize: number, maxPoolSize: number
 }) => {
 
-    // Create n processes at once to read k bytes from the fileName
-    // The server will receive the Message and verify the checksum 
-    // if the checksum does not pass, the server will respond with a failure message
-    // if the checksum does pass, the server will respond with a success message.
-    const jobHandler = new JobHandler({maxPoolSize})
+    const jobHandler = new JobHandler({maxPoolSize, writerPorts})
 
-    const stats = fs.statSync(fileName);
-    const fileSizeInBytes = stats.size;
+    const totalBytes = fs.statSync(fileName).size
 
     let startByte = 0;
-    while (startByte < fileSizeInBytes) {
+    while (startByte < (1.5 * totalBytes)) {
         const endByte = startByte + chunkSize;
-        const chunkTransfer = new ChunkTransfer({ port, fileName, startByte, endByte });
+        const chunkTransfer = new ChunkTransfer({ fileName, startByte, endByte, totalBytes });
         const job = new Job({ id: startByte, jobTask: chunkTransfer })
         jobHandler.add(job)
-        startByte += chunkSize;
+        startByte += chunkSize 
     }
 
     const jobRunnerId = setInterval(() => {
         jobHandler.runJobs()
-    }, 500)
+    }, 30)
 
     setInterval(() => {
         if (jobHandler.isFinished()) {

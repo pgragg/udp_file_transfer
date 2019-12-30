@@ -5,9 +5,10 @@ import { IMessageReceiver } from '../../../entities/udpSocket';
 import { Logger } from '../../../helpers/logger';
 import { Result } from '../../../helpers/result';
 import { SimpleResult } from '../../../helpers/SimpleResult';
+import { Statistics } from '../../statistics/statistics';
 
 export class WriterMessageReceiver implements IMessageReceiver {
-  constructor(private targetFileName: string) { }
+  constructor(private targetFileName: string, private statistics: Statistics) { }
   public receiveMessage(msg: Buffer, info: udp.RemoteInfo, socket: udp.Socket) {
 
     const message = Message.fromString(msg.toString())
@@ -15,8 +16,9 @@ export class WriterMessageReceiver implements IMessageReceiver {
       Logger.log(`Successfully received message with startByte: ${message.success.payload.startByte}`)
       this.enactMessage(message.success);
       this.sendResponse(socket, info.port, 'success', message.success.payload.startByte)
-
+      this.statistics.success(message.success)
     } else {
+      this.statistics.failure(message.failure)
       this.sendResponse(socket, info.port, 'failure');
     }
   }
@@ -31,7 +33,7 @@ export class WriterMessageReceiver implements IMessageReceiver {
 
     return await new Promise((resolve) => {
       fs.write(fileDescriptor, buffer, 0, buffer.length, document.startByte, (err: NodeJS.ErrnoException | null, writtenBytes: number, buffer: Buffer) => {
-        if(err){
+        if (err) {
           resolve(Result.Failure(err))
         }
         Logger.log(`Wrote ${writtenBytes} bytes to file ${this.targetFileName}`);
