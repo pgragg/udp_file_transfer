@@ -4,6 +4,6 @@ if (!module.parent) {
   process.env['DEBUG_LOG'] = 'true'
   write({
     port: 2222,
-    targetFileName: './src/files/typescript2.pdf'
+    targetFileName: './src/files/targetFileOut.txt'
   })
 }

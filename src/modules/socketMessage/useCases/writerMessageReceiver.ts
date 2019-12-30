@@ -33,7 +33,7 @@ export class WriterMessageReceiver implements IMessageReceiver {
     const buffer = Buffer.from(document.data)
 
     fs.write(fileDescriptor, buffer, 0, buffer.length, document.startByte, (err: NodeJS.ErrnoException | null, writtenBytes: number, buffer: Buffer) => {
-      Logger.log(`Wrote ${writtenBytes} bytes to file`);
+      Logger.log(`Wrote ${writtenBytes} bytes to file ${this.targetFileName}`);
     });
 
   }

@@ -23,6 +23,7 @@ var WriterMessageReceiver = /** @class */ (function () {
         }
     };
     WriterMessageReceiver.prototype.enactMessage = function (message) {
+        var _this = this;
         if ('status' in message.payload) {
             return;
         }
@@ -30,7 +31,7 @@ var WriterMessageReceiver = /** @class */ (function () {
         var fileDescriptor = fs_1.default.openSync(this.targetFileName, 'a');
         var buffer = Buffer.from(document.data);
         fs_1.default.write(fileDescriptor, buffer, 0, buffer.length, document.startByte, function (err, writtenBytes, buffer) {
-            logger_1.Logger.log("Wrote " + writtenBytes + " bytes to file");
+            logger_1.Logger.log("Wrote " + writtenBytes + " bytes to file " + _this.targetFileName);
         });
     };
     WriterMessageReceiver.prototype.sendResponse = function (socket, port, status, startByte) {

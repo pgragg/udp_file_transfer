@@ -7,7 +7,7 @@ import { Job } from '../process/job'
 import { Logger } from '../../helpers/logger'
 
 export const read = async ({ port, fileName, chunkSize }: {
-    port: number, fileName: string, targetFileName: string, chunkSize: number
+    port: number, fileName: string, chunkSize: number
 }) => {
 
     // Create n processes at once to read k bytes from the fileName

@@ -17,8 +17,7 @@ if (!module.parent) {
     read_1.read({
         port: 2222,
         chunkSize: 1,
-        fileName: './src/files/smol.txt',
-        targetFileName: './src/files/smol2.txt'
+        fileName: './src/files/smol.txt'
     }).then(function () {
         logger_1.Logger.log("Done");
     });
